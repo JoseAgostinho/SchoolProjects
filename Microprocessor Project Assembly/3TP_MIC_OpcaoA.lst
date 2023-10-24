@@ -1,0 +1,516 @@
+MPASM  5.50                3TP_MIC_OPCAOA.ASM   5-30-2019  22:46:46         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 #INCLUDE <P16F627.INC> 
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC16F627 processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+                      00381         LIST
+  00000020            00002 COUNT EQU 0X20
+                      00003 
+                      00004 ;OPCAO A
+0000                  00005 START 
+                      00006 
+                      00007 ;DESLIGAR COMPARADORES
+0000   3007           00008         MOVLW 0X07
+0001   009F           00009         MOVWF CMCON
+                      00010 
+                      00011 ;SELECIONAR BANCO 1 PARA ENTRADAS E SAIDAS
+0002   1303           00012         BCF STATUS , 6 
+0003   1683           00013         BSF STATUS , 5 
+                      00014 
+                      00015 ;DEFENIR ENTRADAS E SAIDAS
+                      00016         ;ENTRADAS
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0004   1405           00017         BSF TRISA , 0 ;PARA SIMULAR A CHEGADA DE UM COMBOIO
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0005   1605           00018         BSF TRISA , 4 ;PARA SIMULAR A LINHA 1
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0006   1685           00019         BSF TRISA , 5 ;PARA SIMULAR A LINHA 2
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0007   1705           00020         BSF TRISA , 6 ;PARA SIMULAR A LINHA 3
+                      00021 
+                      00022         ;SAIDAS
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0008   1085           00023         BCF TRISA , 1 ;PARA SIMULAR A COR DA LINHA 1
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0009   1105           00024         BCF TRISA , 2 ;PARA SIMULAR A COR DA LINHA 2
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+000A   1185           00025         BCF TRISA , 3 ;PARA SIMULAR A COR DA LINHA 3
+                      00026         ;TUDO RB0 COMO SAIDA PARA O DISPLAY
+000B   3000           00027         MOVLW 0X00
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+000C   0086           00028         MOVWF TRISB
+                      00029                         
+                      00030 ;SELECIIONAR BANCO 0 COMO CODIGO PRINCIPAL
+000D   1303           00031         BCF STATUS , 6 
+000E   1283           00032         BCF STATUS , 5 
+                      00033 
+                      00034 ;CODIGO 
+                      00035         ;LIGAR O DISPLAY A 1
+000F   3006           00036         MOVLW B'00000110' ;VALOR INICIAL A 1
+MPASM  5.50                3TP_MIC_OPCAOA.ASM   5-30-2019  22:46:46         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0010   0086           00037         MOVWF PORTB
+                      00038         
+                      00039         ;LIGAR OS LEDS DE CADA LINHA
+0011   1485           00040         BSF PORTA ,1
+0012   1505           00041         BSF PORTA ,2
+0013   1585           00042         BSF PORTA ,3
+                      00043 
+                      00044 ;COMECO DO CICLO        
+0014                  00045 CICLO
+0014   1C05           00046         BTFSS PORTA , 0 ;ENQUANTO RA0 NAO FOR ACIONADO
+0015   2814           00047         GOTO CICLO
+0016   2817           00048         GOTO CHEGADA
+                      00049 
+                      00050 ;CHEGADAS DOS COMBOIOS  
+0017                  00051 CHEGADA         
+0017   1885           00052         BTFSC PORTA , 1         ;CASO  HAJA COMBOIOS NA LINHA 1
+0018   281E           00053         GOTO LINHA_1_CHEGADA    ;VAI METER O COMBOIO NA LINHA 1                 
+0019   1905           00054         BTFSC PORTA , 2         ;CASO HAJA COMBOIOS NA LINHA 2
+001A   2821           00055         GOTO LINHA_2_CHEGADA    ; VAI METER O COMBOIO NA LINHA 3        
+001B   1985           00056         BTFSC PORTA , 3         ;CASO HAJA COMBOIOS NA LINHA 3  
+001C   2824           00057         GOTO LINHA_3_CHEGADA    ;VAI METER O COMBOIO NA LINHA 3
+001D   2827           00058         GOTO PARTIDAS                   
+                      00059 
+001E                  00060 LINHA_1_CHEGADA 
+001E   1085           00061         BCF PORTA , 1   ;LED LINHA 1 OFF
+001F   284B           00062         GOTO VERIFICA_DISPLAY   ;ATUALIZA O DISPLAY
+0020                  00063 CONTINUA_1_CHEGADA                      ;CONTINUA O DEPOIS DE ATUALIZAR O DISPLAY
+0020   283F           00064         GOTO ESPERA_CHEGADA             ;PARA VERIFICAR SE O BOTAO DO RA0 FOI DESLIGADO
+                      00065 
+0021                  00066 LINHA_2_CHEGADA
+0021   1105           00067         BCF PORTA , 2   ;LED LINHA 2 OFF
+0022   284B           00068         GOTO VERIFICA_DISPLAY
+0023                  00069 CONTINUA_2_CHEGADA
+0023   283F           00070         GOTO ESPERA_CHEGADA             ;PARA VERIFICAR SE O BOTAO DO RA0 FOI DESLIGADO
+                      00071 
+0024                  00072 LINHA_3_CHEGADA
+0024   1185           00073         BCF PORTA , 3 ;LED LINHA 3 OFF
+0025   284B           00074         GOTO VERIFICA_DISPLAY
+0026                  00075 CONTINUA_3_CHEGADA
+0026   283F           00076         GOTO ESPERA_CHEGADA             ;PARA VERIFICAR SE O BOTAO DO RA0 FOI DESLIGADO
+                      00077         
+                      00078 ;PARTIDAS DOS COMBOIOS
+0027                  00079 PARTIDAS
+0027                  00080 LINHA_1_PARTIDA
+0027   1E05           00081         BTFSS PORTA , 4                 ;VE SE O RA4 FOI PRECIONADO
+0028   282F           00082         GOTO LINHA_2_PARTIDA    ;VAI VER SE O RA5 FOI PRECIONADO
+0029   282A           00083         GOTO LINHA_1_MANDAR_EMBORA      ;LINHA 1 COMBOIO A PARTIR
+                      00084 
+002A                  00085 LINHA_1_MANDAR_EMBORA
+002A   205E           00086         CALL DELAY              ;PARA DAR TEMPO PARA O COMBOIO IR EMBORA
+002B   3006           00087         MOVLW B'00000110' ;VALOR DO DISPLAY A 1
+002C   0086           00088         MOVWF PORTB
+002D   1485           00089         BSF PORTA , 1 ;LINHA 1 LED ON
+MPASM  5.50                3TP_MIC_OPCAOA.ASM   5-30-2019  22:46:46         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+002E   2842           00090         GOTO ESPERA_1_PARTIDA   ;PARA VERIFICAR SE O BOTAO DO RA4 FOI DESLIGADO
+                      00091 
+002F                  00092 LINHA_2_PARTIDA
+002F   1E85           00093         BTFSS PORTA , 5         ;VE SE O RA5 FOI PRECIONADO
+0030   2837           00094         GOTO LINHA_3_PARTIDA    ;VAI VER SE O RA6 FOI PRECIONADO        
+0031   2832           00095         GOTO LINHA_2_MANDAR_EMBORA      ;LINHA 2 COMBOIO A PARTIR
+                      00096 
+0032                  00097 LINHA_2_MANDAR_EMBORA
+0032   205E           00098         CALL DELAY              ;PARA DAR TEMPO PARA O COMBOIO IR EMBORA
+0033   305B           00099         MOVLW B'01011011' ;VALOR DO DISPLAY A 2
+0034   0086           00100         MOVWF PORTB
+0035   1505           00101         BSF PORTA ,2 ; LINHA 2 LED ON
+0036   2845           00102         GOTO ESPERA_2_PARTIDA   ;PARA VERIFICAR SE O BOTAO DO RA5 FOI DESLIGADO
+                      00103 
+0037                  00104 LINHA_3_PARTIDA
+0037   1F05           00105         BTFSS PORTA , 6         ;VE SE O RA6 FOI PRECIONADO
+0038   2827           00106         GOTO PARTIDAS           ;SE AINDA NAO FOI MANDADO NENHUM COMBOIO EMBORA VOLTA A VERIFICAR AS PAR
+                            TIDAS
+0039   283A           00107         GOTO LINHA_3_MANDAR_EMBORA      ;LINHA 3 COMBOIO A PARTIR
+                      00108 
+003A                  00109 LINHA_3_MANDAR_EMBORA
+003A   205E           00110         CALL DELAY              ;PARA DAR TEMPO PARA O COMBOIO IR EMBORA
+003B   304F           00111         MOVLW B'01001111' ;VALOR DO DISPLAY A 3
+003C   0086           00112         MOVWF PORTB
+003D   1585           00113         BSF PORTA , 3
+003E   2848           00114         GOTO ESPERA_3_PARTIDA   ;PARA VERIFICAR SE O BOTAO DO RA6 FOI DESLIGADO
+                      00115 
+                      00116 
+                      00117 
+003F                  00118 ESPERA_CHEGADA  ;PARA VERIFICAR SE O BOTAO DO RA0 FOI DESLIGADO
+003F   1805           00119         BTFSC PORTA , 0
+0040   283F           00120         GOTO ESPERA_CHEGADA
+0041   2814           00121         GOTO CICLO      ;VOLTA PARA O INICIO
+                      00122         
+0042                  00123 ESPERA_1_PARTIDA ;PARA VERIFICAR SE O BOTAO DO RA4 FOI DESLIGADO
+0042   1A05           00124         BTFSC PORTA , 4
+0043   2842           00125         GOTO ESPERA_1_PARTIDA
+0044   2814           00126         GOTO CICLO      ;VOLTA PARA O INICIO
+                      00127 
+0045                  00128 ESPERA_2_PARTIDA ;PARA VERIFICAR SE O BOTAO DO RA5 FOI DESLIGADO
+0045   1A85           00129         BTFSC PORTA , 5
+0046   2845           00130         GOTO ESPERA_2_PARTIDA
+0047   2814           00131         GOTO CICLO      ;VOLTA PARA O INICIO
+                      00132 
+0048                  00133 ESPERA_3_PARTIDA ;PARA VERIFICAR SE O BOTAO DO RA6 FOI DESLIGADO
+0048   1B05           00134         BTFSC PORTA ,6 
+0049   2848           00135         GOTO ESPERA_3_PARTIDA
+004A   2814           00136         GOTO CICLO      ;VOLTA PARA O INICIO
+                      00137 
+                      00138 ;PARA ATUALIZAR O DISPLAY
+004B                  00139 VERIFICA_DISPLAY
+004B   1885           00140         BTFSC PORTA , 1 ;SE A LINHA 1 TIVER OCUPADA
+004C   2852           00141         GOTO DISPLAY_1
+MPASM  5.50                3TP_MIC_OPCAOA.ASM   5-30-2019  22:46:46         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+004D   1905           00142         BTFSC PORTA , 2 ;SE A LINHA 2 TIVER OCUPADA
+004E   2855           00143         GOTO DISPLAY_2
+004F   1985           00144         BTFSC PORTA , 3 ;SE A LINHA 3 TIVER OCUPADA
+0050   2858           00145         GOTO DISPLAY_3
+0051   285B           00146         GOTO DISPLAY_0  ;SE TODAS AS LINHAS TIVEREM OCUPADAS
+                      00147         
+                      00148 ;DISPLAY DO VALOR 1     
+0052                  00149 DISPLAY_1
+0052   3006           00150         MOVLW B'00000110' ;VALOR A 1
+0053   0086           00151         MOVWF PORTB
+0054   2820           00152         GOTO CONTINUA_1_CHEGADA ;VAI PARA O CODIGO DE CHEGADA DA LINHA 1
+                      00153 
+                      00154 ;DISPLAY DO VALOR 2
+0055                  00155 DISPLAY_2
+0055   305B           00156         MOVLW B'01011011' ;VALOR A 2
+0056   0086           00157         MOVWF PORTB
+0057   2823           00158         GOTO CONTINUA_2_CHEGADA ;VAI PARA O CODIGO DE CHEGADA DA LINHA 2
+                      00159 
+                      00160 ;DISPLAY DO VALOR 3
+0058                  00161 DISPLAY_3
+0058   304F           00162         MOVLW B'01001111' ;VALOR A 3
+0059   0086           00163         MOVWF PORTB
+005A   2826           00164         GOTO CONTINUA_3_CHEGADA ;VAI PARA O CODIGO DE CHEGADA DA LINHA 3
+                      00165 
+                      00166 ;DISPLAY DO VALOR 0     
+005B                  00167 DISPLAY_0
+005B   303F           00168         MOVLW B'00111111' ;VALOR A 0
+005C   0086           00169         MOVWF PORTB
+005D   2827           00170         GOTO PARTIDAS
+                      00171         
+                      00172 
+                      00173 ;CODIGO DO DELAY
+005E                  00174 DELAY
+005E   01A0           00175         CLRF COUNT
+005F                  00176 CICLODELAY
+005F   0FA0           00177         INCFSZ COUNT , 1
+0060   285F           00178         GOTO CICLODELAY
+0061   0008           00179         RETURN  
+                      00180 
+Warning[205]: Found directive in column 1. (END)
+                      00181 END    
+MPASM  5.50                3TP_MIC_OPCAOA.ASM   5-30-2019  22:46:46         PAGE  5
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ADDEN                             00000003
+ADEN                              00000003
+BRGH                              00000002
+C                                 00000000
+C1INV                             00000004
+C1OUT                             00000006
+C2INV                             00000005
+C2OUT                             00000007
+CCP1CON                           00000017
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCP1X                             00000005
+CCP1Y                             00000004
+CCPR1                             00000015
+CCPR1H                            00000016
+CCPR1L                            00000015
+CHEGADA                           00000017
+CICLO                             00000014
+CICLODELAY                        0000005F
+CIS                               00000003
+CM0                               00000000
+CM1                               00000001
+CM2                               00000002
+CMCON                             0000001F
+CMIE                              00000006
+CMIF                              00000006
+CONTINUA_1_CHEGADA                00000020
+CONTINUA_2_CHEGADA                00000023
+CONTINUA_3_CHEGADA                00000026
+COUNT                             00000020
+CREN                              00000004
+CSRC                              00000007
+DATA_CP_OFF                       00003FFF
+DATA_CP_ON                        00003EFF
+DC                                00000001
+DELAY                             0000005E
+DISPLAY_0                         0000005B
+DISPLAY_1                         00000052
+DISPLAY_2                         00000055
+DISPLAY_3                         00000058
+EEADR                             0000009B
+EECON1                            0000009C
+EECON2                            0000009D
+EEDATA                            0000009A
+EEIE                              00000007
+EEIF                              00000007
+ESPERA_1_PARTIDA                  00000042
+ESPERA_2_PARTIDA                  00000045
+ESPERA_3_PARTIDA                  00000048
+MPASM  5.50                3TP_MIC_OPCAOA.ASM   5-30-2019  22:46:46         PAGE  6
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ESPERA_CHEGADA                    0000003F
+F                                 00000001
+FERR                              00000002
+FSR                               00000004
+GIE                               00000007
+INDF                              00000000
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+LINHA_1_CHEGADA                   0000001E
+LINHA_1_MANDAR_EMBORA             0000002A
+LINHA_1_PARTIDA                   00000027
+LINHA_2_CHEGADA                   00000021
+LINHA_2_MANDAR_EMBORA             00000032
+LINHA_2_PARTIDA                   0000002F
+LINHA_3_CHEGADA                   00000024
+LINHA_3_MANDAR_EMBORA             0000003A
+LINHA_3_PARTIDA                   00000037
+NOT_BO                            00000000
+NOT_BOD                           00000000
+NOT_BOR                           00000000
+NOT_PD                            00000003
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_T1SYNC                        00000002
+NOT_TO                            00000004
+OERR                              00000001
+OPTION_REG                        00000081
+OSCF                              00000003
+PARTIDAS                          00000027
+PCL                               00000002
+PCLATH                            0000000A
+PCON                              0000008E
+PEIE                              00000006
+PIE1                              0000008C
+PIR1                              0000000C
+PORTA                             00000005
+PORTB                             00000006
+PR2                               00000092
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RA6                               00000006
+RA7                               00000007
+MPASM  5.50                3TP_MIC_OPCAOA.ASM   5-30-2019  22:46:46         PAGE  7
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RCIE                              00000005
+RCIF                              00000005
+RCREG                             0000001A
+RCSTA                             00000018
+RD                                00000000
+RP0                               00000005
+RP1                               00000006
+RX9                               00000006
+RX9D                              00000000
+SPBRG                             00000099
+SPEN                              00000007
+SREN                              00000005
+START                             00000000
+STATUS                            00000003
+SYNC                              00000004
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000010
+T1OSCEN                           00000003
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+T2CON                             00000012
+TMR0                              00000001
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR1                              0000000E
+TMR1CS                            00000001
+TMR1H                             0000000F
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1L                             0000000E
+TMR1ON                            00000000
+TMR2                              00000011
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2ON                            00000002
+TOUTPS0                           00000003
+TOUTPS1                           00000004
+TOUTPS2                           00000005
+MPASM  5.50                3TP_MIC_OPCAOA.ASM   5-30-2019  22:46:46         PAGE  8
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TOUTPS3                           00000006
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISA6                            00000006
+TRISA7                            00000007
+TRISB                             00000086
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+TRMT                              00000001
+TX9                               00000006
+TX9D                              00000000
+TXEN                              00000005
+TXIE                              00000004
+TXIF                              00000004
+TXREG                             00000019
+TXSTA                             00000098
+VERIFICA_DISPLAY                  0000004B
+VR0                               00000000
+VR1                               00000001
+VR2                               00000002
+VR3                               00000003
+VRCON                             0000009F
+VREN                              00000007
+VROE                              00000006
+VRR                               00000005
+W                                 00000000
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+Z                                 00000002
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_BOREN_OFF                        00003FBF
+_BOREN_ON                         00003FFF
+_CONFIG                           00002007
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003EFF
+_CP_50                            00002BFF
+_CP_75                            000017FF
+_CP_ALL                           000003FF
+_CP_OFF                           00003FFF
+_DEVID1                           00002006
+MPASM  5.50                3TP_MIC_OPCAOA.ASM   5-30-2019  22:46:46         PAGE  9
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_ER_OSC_CLKOUT                    00003FFF
+_ER_OSC_NOCLKOUT                  00003FFE
+_EXTCLK_OSC                       00003FEF
+_FOSC_ECIO                        00003FEF
+_FOSC_ERCLK                       00003FFF
+_FOSC_ERIO                        00003FFE
+_FOSC_HS                          00003FEE
+_FOSC_INTOSCCLK                   00003FFD
+_FOSC_INTOSCIO                    00003FFC
+_FOSC_LP                          00003FEC
+_FOSC_XT                          00003FED
+_HS_OSC                           00003FEE
+_IDLOC0                           00002000
+_IDLOC1                           00002001
+_IDLOC2                           00002002
+_IDLOC3                           00002003
+_INTRC_OSC_CLKOUT                 00003FFD
+_INTRC_OSC_NOCLKOUT               00003FFC
+_LP_OSC                           00003FEC
+_LVP_OFF                          00003F7F
+_LVP_ON                           00003FFF
+_MCLRE_OFF                        00003FDF
+_MCLRE_ON                         00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_WDTE_OFF                         00003FFB
+_WDTE_ON                          00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_XT_OSC                           00003FED
+__16F627                          00000001
+__DEBUG                           1
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XX-------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:    98
+Program Memory Words Free:   926
+
+
+Errors   :     0
+Warnings :     1 reported,     0 suppressed
+Messages :     8 reported,     0 suppressed
+
+
